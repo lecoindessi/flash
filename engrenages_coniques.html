@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulateur 3D — Engrenages coniques</title>
+<style>
+  :root{color-scheme:light;--ink:#223149;--muted:#68778c;--line:#e1e8f1;--blue:#155ec6;--green:#14895c;--pink:#c31588;--gold:#d89b13}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#eef2f8;font:14px/1.4 system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}
+  body{display:flex;align-items:flex-start;justify-content:center;padding:0}
+  .sim{width:min(100%,1200px);height:600px;background:#fff;overflow:hidden;display:grid;grid-template-rows:60px 1fr;border:1px solid #d9e2ec;box-shadow:0 8px 30px #243b5314}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 20px 8px;background:#fff;border-bottom:1px solid #e6edf3}
+  h1{margin:0;font-size:22px;letter-spacing:-.45px;font-weight:780;line-height:1.08}
+  header small{display:block;font-size:12px;color:#7a8797;margin-top:3px;font-weight:500}
+  .tag{flex:none;color:#657489;background:#edf2f7;padding:7px 11px;border-radius:8px;font-size:11px;font-weight:750;letter-spacing:.5px}
+
+  .layout{display:grid;grid-template-columns: minmax(0,760px) minmax(0,1fr);min-height:0;height:100%}
+  .stage-wrap{padding:14px 12px 14px 14px;min-width:0;min-height:0}
+  .stage{position:relative;width:100%;height:100%;overflow:hidden;border:1px solid #e5ecf3;border-radius:16px;background:radial-gradient(ellipse at 55% 35%,#fff 5%,#f5f8fc 61%,#e9eef5 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  #canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab;outline:0}
+  #canvas.grabbing{cursor:grabbing}
+  .gear-label{position:absolute;z-index:1;pointer-events:none;text-shadow:0 1px 1px #fff;font-weight:840;font-size:18px;white-space:nowrap}
+  #label1{color:var(--blue);top:34px;right:110px}
+  #label2{color:var(--green);left:54px;bottom:52px}
+  .stage-note{position:absolute;bottom:10px;right:12px;color:#8a96a4;font-size:11px;pointer-events:none;background:#ffffffc9;border:1px solid #e3eaf1;border-radius:8px;padding:5px 8px}
+  .turn1,.turn2{font-size:19px;font-weight:900;vertical-align:-1px;margin-right:3px}
+  .turn1{color:var(--pink)} .turn2{color:var(--gold)}
+  .error{position:absolute;inset:20% 9%;display:none;align-items:center;justify-content:center;text-align:center;padding:25px;background:#fff;border:1px solid #dfe7ef;border-radius:12px;color:#9a2641;z-index:4}
+
+  .side{padding:14px 14px 14px 10px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;min-height:0;overflow:hidden}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 3px 16px #293f5808}
+  .formula{padding:12px 14px}
+  .formula-label{font-size:11px;letter-spacing:.06em;color:#7b8997;font-weight:760;text-transform:uppercase;margin-bottom:5px}
+  .equation{font-size:24px;display:flex;gap:8px;align-items:center;font-weight:760;white-space:nowrap;flex-wrap:wrap}
+  .frac{display:inline-flex;flex-direction:column;text-align:center;line-height:1.12;font-size:18px;min-width:24px}
+  .frac em{font-style:normal;display:block;padding:0 5px}
+  .frac em:first-child{border-bottom:1.7px solid currentColor;padding-bottom:2px}
+  .frac em:last-child{padding-top:2px}
+  .ratio{color:var(--pink);font-weight:800;font-size:27px}
+  .formula .foot{margin-top:5px;color:#778598;font-size:11px}
+
+  .control-panel{padding:11px 14px;display:flex;flex-direction:column;min-height:0}
+  .row-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .row-head strong{font-size:14px}
+  .row-head span{font-size:11px;color:#8290a0;max-width:190px;text-align:right}
+  .sliders{display:grid;grid-template-columns:1fr;gap:9px;overflow:visible;padding-right:2px}
+  .control{min-width:0}
+  .control label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:680;margin-bottom:4px}
+  .control output{min-width:42px;text-align:center;border-radius:6px;padding:3px 6px;font-size:13px;font-weight:850;background:#eef4fd;color:var(--blue)}
+  .control.green output{background:#e8f7f0;color:var(--green)}
+  .control.speed output{background:#f0f3f8;color:#4a5870;min-width:82px;font-size:12px}
+  .control input[type=range]{width:100%;margin:0;display:block;height:18px;accent-color:var(--blue);cursor:pointer}
+  .control.green input{accent-color:var(--green)} .control.speed input{accent-color:#677993}
+  .control .range-labels{display:flex;justify-content:space-between;margin-top:0;font-size:10px;color:#9ba6b4}
+
+  .bottom-card{padding:14px 14px;display:flex;flex-direction:column;align-items:stretch;gap:12px}
+  .transmission{font-size:13px;min-width:0}
+  .transmission b{font-weight:780}
+  .transmission #n2text{color:var(--green);font-weight:800}
+  .transmission .detail{font-size:11px;color:#8190a0;margin-top:2px}
+  .buttons{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:nowrap}
+  button{font:700 11px system-ui,sans-serif;border:1px solid #dce5ef;border-radius:8px;background:#f9fbfd;color:#40506b;padding:9px 11px;cursor:pointer;white-space:nowrap;flex:1}
+  button:hover{border-color:#afc1d4;background:#eef5fb}
+  #toggle{background:#225fc1;color:#fff;border-color:#225fc1;min-width:88px}
+  #toggle:hover{background:#174ea8}
+  button:focus-visible,input:focus-visible,#canvas:focus-visible{outline:2px solid #85b5ff;outline-offset:2px}
+
+  @media (max-width: 880px){
+    .sim{width:100%;height:auto;min-height:600px;overflow:visible}
+    .layout{grid-template-columns:1fr;grid-template-rows:330px auto}
+    .stage-wrap{padding:12px 12px 6px}
+    .side{padding:6px 12px 12px;overflow:visible}
+    .row-head span{max-width:none;text-align:left}
+    .bottom-card{flex-direction:column;align-items:stretch}
+  }
+</style>
+</head>
+<body>
+<main class="sim" role="application" aria-label="Simulateur interactif d'engrenages coniques">
+  <header>
+    <div>
+      <h1>Les engrenages coniques</h1>
+      <small>Transmission de mouvement entre deux axes perpendiculaires</small>
+    </div>
+    <span class="tag">Angle de pression : 20°</span>
+  </header>
+
+  <div class="layout">
+    <section class="stage-wrap">
+      <section class="stage" id="stage" aria-label="Vue animée des deux engrenages coniques">
+        <canvas id="canvas" aria-label="Tourner la vue en faisant glisser, zoomer avec la molette"></canvas>
+        <div class="gear-label" id="label1">Z₁ = 18 <span class="turn1" id="direction1">↺</span></div>
+        <div class="gear-label" id="label2">Z₂ = 36 <span class="turn2" id="direction2">↻</span></div>
+        <div class="stage-note">↔ Glisser pour orienter • Molette pour zoomer</div>
+        <div id="error" class="error">Impossible d'afficher la vue 3D : WebGL est désactivé dans ce navigateur. Activez l'accélération graphique ou essayez un autre navigateur.</div>
+      </section>
+    </section>
+
+    <aside class="side">
+      <section class="card formula" aria-live="off">
+        <div class="formula-label">Rapport de transmission</div>
+        <div class="equation">
+          <span class="frac"><em style="color:var(--green)">n₂</em><em style="color:var(--blue)">n₁</em></span>
+          =
+          <span class="frac"><em style="color:var(--blue)">Z₁</em><em style="color:var(--green)">Z₂</em></span>
+          =
+          <span class="ratio" id="ratio">0,500</span>
+        </div>
+        <div class="foot">Valeurs absolues des vitesses</div>
+      </section>
+
+      <section class="card control-panel" aria-label="Réglages du simulateur">
+        <div class="row-head"><strong>Réglages</strong><span>Le nombre de dents détermine le rapport de vitesse</span></div>
+        <div class="sliders">
+          <div class="control"><label for="z1">Pignon 1 · dents <output id="z1out">18</output></label><input id="z1" type="range" min="10" max="50" step="1" value="18"><div class="range-labels"><span>10</span><span>50 dents</span></div></div>
+          <div class="control green"><label for="z2">Pignon 2 · dents <output id="z2out">36</output></label><input id="z2" type="range" min="12" max="80" step="1" value="36"><div class="range-labels"><span>12</span><span>80 dents</span></div></div>
+          <div class="control speed"><label for="rpm">Vitesse d'entrée n₁ <output id="rpmout">8 tr/min</output></label><input id="rpm" type="range" min="2" max="15" step="1" value="8"><div class="range-labels"><span>2 tr/min</span><span>15 tr/min</span></div></div>
+        </div>
+      </section>
+
+      <section class="card bottom-card">
+        <div class="transmission"><b>Résultat :</b> <span id="n2text">n₂ = 4 tr/min</span><div class="detail">Axes à 90° • Développante de cercle (cône complémentaire)</div></div>
+        <div class="buttons"><button type="button" id="toggle">⏸ Pause</button><button type="button" id="reverse">⇄ Inverser</button><button type="button" id="reset">⌖ Vue initiale</button></div>
+      </section>
+    </aside>
+  </div>
+</main>
+<script>
+(()=>{'use strict';
+  const $=id=>document.getElementById(id);
+  const canvas=$('canvas'), stage=$('stage');
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:false}) || canvas.getContext('experimental-webgl',{alpha:true,antialias:true});
+  if(!gl){$('error').style.display='flex';return;}
+  const vertexShader=`
+   attribute vec3 aPosition; attribute vec3 aNormal; attribute vec3 aColor;
+   uniform mat4 uProj, uView, uModel;
+   varying vec3 vPos,vN,vColor;
+   void main(){vec4 w=uModel*vec4(aPosition,1.0);vPos=w.xyz;vN=mat3(uModel)*aNormal;vColor=aColor;gl_Position=uProj*uView*w;}
+  `;
+  const fragmentShader=`
+   precision mediump float;
+   varying vec3 vPos,vN,vColor;
+   uniform vec3 uCamera;
+   void main(){
+     vec3 n=normalize(vN);
+     vec3 l=normalize(vec3(-0.52,0.93,0.83));
+     vec3 fill=normalize(vec3(0.45,0.42,-0.82));
+     float dif=max(dot(n,l),0.0);
+     float dif2=max(dot(n,fill),0.0);
+     float shade=0.41+0.50*dif+0.19*dif2;
+     vec3 viewdir=normalize(uCamera-vPos);
+     vec3 h=normalize(l+viewdir);
+     float spec=pow(max(dot(n,h),0.0),40.0)*0.35;
+     float rim=pow(1.0-max(dot(n,viewdir),0.0),3.0)*0.12;
+     vec3 color=vColor*shade+vec3(spec+rim);
+     color=pow(clamp(color,0.0,1.0),vec3(0.94));
+     gl_FragColor=vec4(color,1.0);
+   }
+  `;
+  function shader(kind,source){const s=gl.createShader(kind);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){throw Error(gl.getShaderInfoLog(s))}return s}
+  let program;
+  try{program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vertexShader));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragmentShader));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));}catch(err){console.error(err);$('error').style.display='flex';return}
+  gl.useProgram(program);
+  const attrs={p:gl.getAttribLocation(program,'aPosition'),n:gl.getAttribLocation(program,'aNormal'),c:gl.getAttribLocation(program,'aColor')};
+  const uniforms={p:gl.getUniformLocation(program,'uProj'),v:gl.getUniformLocation(program,'uView'),m:gl.getUniformLocation(program,'uModel'),camera:gl.getUniformLocation(program,'uCamera')};
+  const PI=Math.PI,TAU=2*PI;
+  function cross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+  function norm(v){let l=Math.hypot(...v)||1;return v.map(x=>x/l)}
+  function subtract(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+  function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+  function lookAt(eye,target){const z=norm(subtract(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
+  function perspective(fovy,aspect,near,far){const f=1/Math.tan(fovy/2);return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0])}
+  // Geometry notes:
+  // 1. These are 90° straight bevel gears, sharing the same pitch-cone vertex.
+  // 2. A bevel tooth is approximated by a planar CIRCLE INVOLUTE on the
+  //    virtual (back-cone / Tredgold) spur gear: r_v = r_pitch / cos(delta),
+  //    Z_v = Z / cos(delta). We map the involute angles back by /cos(delta).
+  // 3. On each face-width station, the profile is computed from the base circle
+  //    r_b = r_v cos(alpha), where involute(t)=tan(t)-t (alpha=20 degrees).
+  //    Its theoretical involute flank is tessellated with 14 subdivisions.
+  //    Below the base circle the root transition is necessarily an approximation
+  //    (a genuine manufactured gear has a trochoidal or rounded root fillet).
+  // This is a faithful TEACHING approximation of a straight bevel tooth profile,
+  // not a precision Gleason machine-generated surface / CAD contact model.
+  function buildGear(z,delta,large){
+    const L=3.14, sin=Math.sin(delta), cos=Math.cos(delta), R=L*sin;
+    const alpha=20*PI/180, inv0=Math.tan(alpha)-alpha, pitch=TAU/z;
+    const moduleAt = t => 2*t*sin/z;
+    const pos=[],normals=[],colors=[];
+    const base=large?[.58,.34,.36]:[.34,.43,.60]; // large gear: anodized red, small gear: anodized blue
+    function tone(v){return base.map(c=>Math.min(1,Math.max(0,c*v)))}
+    function pt(t,angle,h){
+      let r=t*sin+h*cos, axial=t*cos-h*sin;
+      return [r*Math.cos(angle),r*Math.sin(angle),axial];
+    }
+    function triangle(a,b,c,shade){
+      const n=norm(cross(subtract(b,a),subtract(c,a))),color=tone(shade);
+      for(const p of [a,b,c]){pos.push(...p);normals.push(...n);colors.push(...color)}
+    }
+    function quad(a,b,c,d,shade){triangle(a,b,c,shade);triangle(a,c,d,shade)}
+    function front(t,phi){return pt(t,phi,-1.20*moduleAt(t))}
+    function back(t,phi){
+      const a=front(t,phi);
+      return [a[0]*.994,a[1]*.994,a[2]+.20+moduleAt(t)*.30];
+    }
+    // Truncated SOLID bevel-gear bodies: preserve the shortened narrow ends,
+    // but seal BOTH central openings with full, planar circular closing faces.
+    // There is no bore or hollow cone at either shaft end.
+    const inner=L*.435, outer=L*.955;
+    const bands=[inner,L*.475,L*.52,L*.60,L*.69,L*.82,outer];
+    const segments=Math.max(160,z*9);
+    for(let j=0;j<bands.length-1;j++)for(let i=0;i<segments;i++){
+      const a=TAU*i/segments,b=TAU*(i+1)/segments;
+      const t0=bands[j],t1=bands[j+1];
+      quad(front(t0,b),front(t1,b),front(t1,a),front(t0,a),1.07);
+      quad(back(t0,a),back(t1,a),back(t1,b),back(t0,b),.72);
+    }
+    for(let i=0;i<segments;i++){
+      const a=TAU*i/segments,b=TAU*(i+1)/segments;
+      // The outer edge joins front and back into a real closed volume.
+      quad(front(outer,b),back(outer,b),back(outer,a),front(outer,a),.84);
+      // Seal both sides of the truncated nose right up to the rotation axis.
+      // Without these radial triangular fans the end appears hollow.
+      const centerFront=[0,0,front(inner,0)[2]];
+      const centerBack =[0,0,back(inner,0)[2]];
+      triangle(centerFront,front(inner,a),front(inner,b),1.08);
+      triangle(centerBack,back(inner,b),back(inner,a),.86);
+      // Short outer wall of the solid nose; no hole or separate hub.
+      quad(back(inner,b),front(inner,b),front(inner,a),back(inner,a),.92);
+    }
+    // Exact CIRCLE involute for the virtual spur-gear cross section.
+    function involuteAngle(t,h){
+      const rv=t*Math.tan(delta),zv=z/cos,rb=rv*Math.cos(alpha);
+      const rho=rv+h;
+      const invol=(rho>=rb)?
+        (()=>{const u=Math.sqrt(Math.max(0,(rho/rb)**2-1));return u-Math.atan(u)})():0;
+      const halfVirtual=PI/(2*zv)+inv0-invol;
+      return Math.max(.006,halfVirtual/cos);
+    }
+    const face=[L*.48,L*.54,L*.61,L*.70,L*.80,L*.89,outer];
+    const nCurve=14;
+    for(let k=0;k<z;k++){
+      const mid=k*pitch;
+      const stations=[];
+      for(const t of face){
+        const m=moduleAt(t),rv=t*Math.tan(delta),rb=rv*Math.cos(alpha);
+        const hRoot=-1.10*m,hTop=.80*m;
+        const hBase=Math.max(hRoot,rb-rv);
+        const rootHalf=Math.min(pitch*.44,involuteAngle(t,hBase)+.043*pitch);
+        // Each tooth outline:  root-left, an involute flank, flat tip,
+        // inverse involute flank, root-right. Angles taper correctly from
+        // base circle to addendum circle and across the face width.
+        const outline=[];
+        outline.push(pt(t,mid-rootHalf,hRoot));
+        if(hBase>hRoot+1e-6)outline.push(pt(t,mid-involuteAngle(t,hBase),hBase));
+        for(let i=0;i<=nCurve;i++){
+          let h=hBase+(hTop-hBase)*i/nCurve;
+          outline.push(pt(t,mid-involuteAngle(t,h),h));
+        }
+        for(let i=nCurve;i>=0;i--){
+          let h=hBase+(hTop-hBase)*i/nCurve;
+          outline.push(pt(t,mid+involuteAngle(t,h),h));
+        }
+        if(hBase>hRoot+1e-6)outline.push(pt(t,mid+involuteAngle(t,hBase),hBase));
+        outline.push(pt(t,mid+rootHalf,hRoot));
+        stations.push(outline);
+      }
+      // Longitudinal flanks are ruled surfaces between successive involute profiles.
+      for(let j=0;j<stations.length-1;j++){
+        const a=stations[j],b=stations[j+1];
+        for(let i=0;i<a.length-1;i++){
+          // Smooth enough that the characteristic curved involute shows in 3D.
+          const shade=i<=nCurve+1? 1.02 : .85;
+          quad(a[i],b[i],b[i+1],a[i+1],shade);
+        }
+      }
+      // End caps. The whole pitch sector is closed so the tooth ends stay visually solid
+      // (no hollow-looking gaps in the valleys), while keeping the involute flanks unchanged.
+      for(const [idx,shade] of [[0,.83],[stations.length-1,1.14]]){
+        const outline=stations[idx];
+        const t=face[idx],m=moduleAt(t);
+        const cap=[pt(t,mid-pitch*.5,-1.10*m),...outline,pt(t,mid+pitch*.5,-1.10*m)];
+        const midpt=pt(t,mid,-.28*m);
+        for(let i=0;i<cap.length-1;i++)triangle(midpt,cap[i],cap[i+1],shade);
+      }
+    }
+    // Front and rear disks, outside rim and sealed narrow end form visibly
+    // solid gears. The involute flanks above are left exactly unchanged.
+    // Interleaved vertex attributes: position, surface normal, metal color.
+    const count=pos.length/3,verts=new Float32Array(count*9);
+    for(let i=0;i<count;i++){
+      verts.set(pos.slice(i*3,i*3+3),i*9);
+      verts.set(normals.slice(i*3,i*3+3),i*9+3);
+      verts.set(colors.slice(i*3,i*3+3),i*9+6);
+    }
+    const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,verts,gl.STATIC_DRAW);
+    return {buffer,count};
+  }
+  function orient(isLarge,theta){
+    // Right-handed bases: large shaft points down; small shaft points right.
+    // Small mounting clearance: the teeth remain visibly meshed while avoiding gross overlap.
+    const u=isLarge?[1,0,0]:[0,-1,0],v=isLarge?[0,0,1]:[0,0,-1],axis=isLarge?[0,-1,0]:[1,0,0],c=Math.cos(theta),s=Math.sin(theta);
+    let x=u.map((n,i)=>n*c+v[i]*s),y=u.map((n,i)=>-n*s+v[i]*c);
+    const clearance=.055, tx=isLarge?0:clearance, ty=isLarge?-clearance:0, tz=0;
+    return new Float32Array([x[0],x[1],x[2],0,y[0],y[1],y[2],0,axis[0],axis[1],axis[2],0,tx,ty,tz,1])
+  }
+  let z1=18,z2=36,rpm=8,rotation=0,sign=1,playing=true;
+  let mesh1,mesh2;
+  const state={azimuth:-.58,elevation:.50,distance:12.4};
+  function rebuild(){
+    if(mesh1)gl.deleteBuffer(mesh1.buffer);if(mesh2)gl.deleteBuffer(mesh2.buffer);
+    let delta1=Math.atan(z1/z2),delta2=Math.atan(z2/z1);
+    mesh1=buildGear(z1,delta1,false);mesh2=buildGear(z2,delta2,true);
+    const n2=rpm*z1/z2;
+    $('z1out').textContent=z1;$('z2out').textContent=z2;$('rpmout').textContent=rpm+' tr/min';
+    $('ratio').textContent=(z1/z2).toFixed(3).replace('.',',');
+    $('label1').firstChild.textContent='Z₁ = '+z1+' ';
+    $('label2').firstChild.textContent='Z₂ = '+z2+' ';
+    $('n2text').textContent='n₂ = '+n2.toLocaleString('fr-FR',{maximumFractionDigits:1})+' tr/min';
+  }
+  function setSpeed(){rpm=+$('rpm').value;const n2=rpm*z1/z2;$('rpmout').textContent=rpm+' tr/min';$('n2text').textContent='n₂ = '+n2.toLocaleString('fr-FR',{maximumFractionDigits:1})+' tr/min'}
+  $('z1').addEventListener('input',()=>{z1=+$('z1').value;rebuild()});
+  $('z2').addEventListener('input',()=>{z2=+$('z2').value;rebuild()});
+  $('rpm').addEventListener('input',setSpeed);
+  $('toggle').addEventListener('click',()=>{playing=!playing;$('toggle').textContent=playing?'⏸ Pause':'▶ Lecture'});
+  $('reverse').addEventListener('click',()=>{sign=-sign;$('direction1').textContent=sign===1?'↺':'↻';$('direction2').textContent=sign===1?'↻':'↺'});
+  $('reset').addEventListener('click',()=>{state.azimuth=-.58;state.elevation=.50;state.distance=12.4});
+  let drag=null;
+  canvas.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.classList.add('grabbing')});
+  canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;state.azimuth-=dx*.008;state.elevation=Math.max(-.03,Math.min(1.34,state.elevation+dy*.007));drag.x=e.clientX;drag.y=e.clientY});
+  function release(e){if(drag&&drag.id===e.pointerId){drag=null;canvas.classList.remove('grabbing')}}
+  canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();state.distance=Math.max(8.2,Math.min(19.5,state.distance*Math.exp(e.deltaY*.001)))},{passive:false});
+  canvas.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')state.azimuth+=.1;else if(e.key==='ArrowRight')state.azimuth-=.1;else if(e.key==='ArrowUp')state.elevation=Math.min(1.34,state.elevation+.1);else if(e.key==='ArrowDown')state.elevation=Math.max(-.03,state.elevation-.1);else return;e.preventDefault()});canvas.tabIndex=0;
+  function resize(){const r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);const w=Math.round(r.width*dpr),h=Math.round(r.height*dpr);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}}
+  function draw(mesh,matrix){gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buffer);gl.enableVertexAttribArray(attrs.p);gl.enableVertexAttribArray(attrs.n);gl.enableVertexAttribArray(attrs.c);gl.vertexAttribPointer(attrs.p,3,gl.FLOAT,false,36,0);gl.vertexAttribPointer(attrs.n,3,gl.FLOAT,false,36,12);gl.vertexAttribPointer(attrs.c,3,gl.FLOAT,false,36,24);gl.uniformMatrix4fv(uniforms.m,false,matrix);gl.drawArrays(gl.TRIANGLES,0,mesh.count)}
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(0,0,0,0);
+  gl.disable(gl.CULL_FACE); // Both sides visible, including the central bores.
+  let last=0;
+  function render(now){
+    resize();const dt=Math.min((now-last)/1000||0,.05);last=now;
+    if(playing)rotation+=sign*rpm*TAU/60*dt;
+    let r=state.distance,e=state.elevation,a=state.azimuth,target=[.89,-.75,0];
+    let eye=[target[0]+r*Math.cos(e)*Math.sin(a),target[1]+r*Math.sin(e),target[2]+r*Math.cos(e)*Math.cos(a)];
+    const view=lookAt(eye,target),proj=perspective(42*PI/180,canvas.width/canvas.height,.1,80);
+    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(uniforms.v,false,view);gl.uniformMatrix4fv(uniforms.p,false,proj);
+    gl.uniform3fv(uniforms.camera,new Float32Array(eye));
+    // Surface speeds at the contact generator are equal: w2=-w1*(Z1/Z2).
+    draw(mesh2,orient(true,PI/z2-rotation*z1/z2));
+    draw(mesh1,orient(false,rotation));
+    requestAnimationFrame(render);
+  }
+  rebuild();requestAnimationFrame(render);
+})();
+</script>
+</body></html>
