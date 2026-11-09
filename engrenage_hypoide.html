@@ -3,8 +3,9 @@
 <title>Simulateur 3D — Engrenages hypoïdes</title>
 <style>
   :root{--ink:#26364e;--muted:#738399;--line:#e0e7f0;--blue:#295ba3;--red:#9b4b5c;--pink:#b51675;--bg:#f2f5f9}
-  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink)}
-  .sim{width:1200px;height:600px;margin:0 auto;display:grid;grid-template-rows:64px 1fr;background:#fff;border:1px solid #dce4ee;overflow:hidden}
+  *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--ink)}
+  .fit-viewport{position:relative;width:100%;height:100%;overflow:hidden}
+  .sim{position:absolute;top:0;left:0;width:1200px;height:600px;margin:0;transform-origin:top left;display:grid;grid-template-rows:64px 1fr;background:#fff;border:1px solid #dce4ee;overflow:hidden}
   header{display:flex;align-items:center;justify-content:space-between;padding:11px 21px;border-bottom:1px solid var(--line)}
   h1{font-size:21px;letter-spacing:-.5px;line-height:1.12;margin:0 0 4px;font-weight:800}
   .subhead{font-size:12px;color:var(--muted)}
@@ -57,8 +58,9 @@
   .axes-switch input{accent-color:#436a9d}
   .foot{font-size:9px;color:#8c98aa;line-height:1.25}
   button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid #8bb8ee;outline-offset:2px}
-  @media (max-width:1199px){.sim{margin:0;width:1200px}}
+  /* La mise à l'échelle est calculée à partir de la taille réelle de l'iframe. */
 </style></head><body>
+<div class="fit-viewport" id="fitViewport">
 <main class="sim" role="application" aria-label="Simulateur 3D d'engrenages hypoïdes">
   <header><div><h1>Les engrenages hypoïdes</h1><div class="subhead">Transmission entre deux axes perpendiculaires non sécants · Couronne et pignon d’attaque</div></div><span class="header-tag">Angles de pression = 20°</span></header>
   <div class="layout">
@@ -93,8 +95,20 @@
     </aside>
   </div>
 </main>
+</div>
 <script>
 (()=>{'use strict';
+  // Conserver l'intégralité du simulateur dans Google Sites, même lorsque
+  // l'iframe est plus étroite que 1200 px (sans couper la colonne droite).
+  const sim=document.querySelector('.sim');
+  function ajusterAuCadre(){
+    const largeur=Math.max(1,document.documentElement.clientWidth);
+    const hauteur=Math.max(1,document.documentElement.clientHeight);
+    const echelle=Math.min(1,largeur/1200,hauteur/600);
+    sim.style.transform=`translateX(${Math.max(0,(largeur-1200*echelle)/2)}px) scale(${echelle})`;
+  }
+  ajusterAuCadre();
+  window.addEventListener('resize',ajusterAuCadre,{passive:true});
   const $=id=>document.getElementById(id);
   const canvas=$('canvas'), stage=$('stage');
   const gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:false}) || canvas.getContext('experimental-webgl',{alpha:true,antialias:true});
