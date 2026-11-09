@@ -82,10 +82,10 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
         <div class="stage-hint">Les pignons gris transmettent le mouvement sans modifier le rapport final.</div>
       </div>
       <div class="speed-strip" aria-live="off">
-        <div class="speed-box in"><div class="name"><span class="dot" style="background:#507db4"></span>1 · Entrée</div><div class="speed" id="speed1">60 tr/min</div></div>
-        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>2 · Fou</div><div class="speed" id="speed2">45 tr/min</div></div>
-        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>3 · Fou</div><div class="speed" id="speed3">77,1 tr/min</div></div>
-        <div class="speed-box out"><div class="name"><span class="dot" style="background:#af6670"></span>4 · Sortie</div><div class="speed" id="speed4">30 tr/min</div></div>
+        <div class="speed-box in"><div class="name"><span class="dot" style="background:#507db4"></span>1 · Entrée</div><div class="speed" id="speed1">8 tr/min</div></div>
+        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>2 · Fou</div><div class="speed" id="speed2">6 tr/min</div></div>
+        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>3 · Fou</div><div class="speed" id="speed3">10,3 tr/min</div></div>
+        <div class="speed-box out"><div class="name"><span class="dot" style="background:#af6670"></span>4 · Sortie</div><div class="speed" id="speed4">4 tr/min</div></div>
       </div>
     </section>
 
@@ -96,8 +96,8 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
         <div class="control"><label for="z4">Pignon 4 · Sortie (rouge)</label><output class="value red" id="v4">36</output><input class="red" id="z4" type="range" min="10" max="40" step="1" value="36" aria-label="Nombre de dents du pignon de sortie"></div>
         <div class="control"><label for="z2">Pignon 2 · Fou (gris)</label><output class="value grey" id="v2">24</output><input class="grey" id="z2" type="range" min="10" max="40" step="1" value="24" aria-label="Nombre de dents du premier pignon fou"></div>
         <div class="control"><label for="z3">Pignon 3 · Fou (gris)</label><output class="value grey" id="v3">14</output><input class="grey" id="z3" type="range" min="10" max="40" step="1" value="14" aria-label="Nombre de dents du second pignon fou"></div>
-        <div class="control"><label for="rpm">Vitesse d'entrée n₁</label><output class="value" id="rpmVal">60 tr/min</output><input id="rpm" type="range" min="5" max="180" step="1" value="60" aria-label="Vitesse d'entrée en tours par minute"></div>
-        <div class="control"><label>Vitesse de sortie n₄</label><output class="value green" id="outVal">30 tr/min</output><div class="output-track" aria-hidden="true"><div class="output-fill" id="outBar"></div></div></div>
+        <div class="control"><label for="rpm">Vitesse d'entrée n₁</label><output class="value" id="rpmVal">8 tr/min</output><input id="rpm" type="range" min="2" max="15" step="1" value="8" aria-label="Vitesse d'entrée en tours par minute"></div>
+        <div class="control"><label>Vitesse de sortie n₄</label><output class="value green" id="outVal">4 tr/min</output><div class="output-track" aria-hidden="true"><div class="output-fill" id="outBar"></div></div></div>
       </div>
       <div class="buttons">
         <button class="primary" id="play" type="button">⏸ Pause</button>
@@ -122,7 +122,7 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
  const canvas=$('gears'), context=canvas.getContext('2d',{alpha:true});
  const ids=['z1','z2','z3','z4'];
  const values=[18,24,14,36];
- let rpm=60,direction=1,playing=true,rotation=0,previousTime=0;
+ let rpm=8,direction=1,playing=true,rotation=0,previousTime=0;
  const PI=Math.PI,TWO_PI=2*Math.PI;
  const colors=[['#6b93c1','#456e9e','#315785'],['#e1e7ee','#b7c3d0','#8596a8'],['#e1e7ee','#b7c3d0','#8596a8'],['#c78791','#aa596a','#854657']];
  function fmt(x){return x.toLocaleString('fr-FR',{maximumFractionDigits:1})}
@@ -133,7 +133,7 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
    $('rpmVal').textContent=fmt(rpm)+' tr/min';
    $('outVal').textContent=fmt(Math.abs(n[3]))+' tr/min';
    $('ratio').textContent='−'+(values[0]/values[3]).toFixed(3).replace('.',',');
-   $('outBar').style.width=Math.min(100,100*Math.abs(n[3])/360)+'%';
+   $('outBar').style.width=Math.min(100,100*Math.abs(n[3])/60)+'%';
  }
  function scaleCanvas(){
    const b=canvas.getBoundingClientRect(), pixelRatio=Math.min(window.devicePixelRatio||1,2);
@@ -287,7 +287,7 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
  $('play').addEventListener('click',()=>{playing=!playing;$('play').textContent=playing?'⏸ Pause':'▶ Lecture'});
  $('reverse').addEventListener('click',()=>{direction*=-1;update()});
  $('reset').addEventListener('click',()=>{
-   [18,24,14,36].forEach((v,i)=>{values[i]=v;$(ids[i]).value=v});rpm=60;direction=1;playing=true;rotation=0;$('rpm').value=60;$('play').textContent='⏸ Pause';update();
+   [18,24,14,36].forEach((v,i)=>{values[i]=v;$(ids[i]).value=v});rpm=8;direction=1;playing=true;rotation=0;$('rpm').value=8;$('play').textContent='⏸ Pause';update();
  });
  update();requestAnimationFrame(render);
 })();
