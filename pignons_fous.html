@@ -1,108 +1,119 @@
 <!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Les pignons fous — simulateur 2D</title>
-<style>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Les pignons fous — simulateur 2D 1200 × 600</title><style>
 :root{--ink:#26364b;--muted:#708096;--line:#dae2eb;--blue:#4774aa;--red:#aa5866;--grey:#aab6c3;--green:#147958}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:#f1f4f8}
-.app{width:800px;height:600px;max-width:100%;margin:0 auto;display:grid;grid-template-rows:48px 292px 57px minmax(0,1fr);background:#f7f9fc;border:1px solid #d7e0eb;overflow:hidden}
-header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 14px;background:#fff;border-bottom:1px solid var(--line)}
-h1{margin:0;font-size:17px;font-weight:800;color:#233b63}
-header small{display:block;margin-top:3px;color:var(--muted);font-size:10.5px}
-.tag{border-radius:7px;color:#516b88;background:#edf2f8;font-weight:800;letter-spacing:.045em;font-size:10px;padding:7px 9px;white-space:nowrap}
-.stage{position:relative;min-height:0;background:radial-gradient(ellipse at 50% 42%,#ffffff 0%,#f0f5fa 100%);display:grid;grid-template-rows:minmax(0,1fr) 49px;border-bottom:1px solid var(--line)}
-.canvas-area{position:relative;min-height:0;overflow:hidden}
+.app{width:1200px;height:600px;max-width:100%;margin:0 auto;display:grid;grid-template-rows:54px minmax(0,1fr) 80px;background:#f7f9fc;border:1px solid #d7e0eb;overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:7px 19px;background:#fff;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:20px;font-weight:800;color:#233b63;line-height:1.18}
+header small{display:block;margin-top:5px;color:var(--muted);font-size:12px}
+.tag{border-radius:7px;color:#516b88;background:#edf2f8;font-weight:800;letter-spacing:.045em;font-size:11px;padding:8px 12px;white-space:nowrap}
+.workspace{display:grid;grid-template-columns:minmax(0,1.88fr) minmax(0,1fr);min-height:0}
+.stage{min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 57px;border-right:1px solid var(--line);background:radial-gradient(ellipse at 50% 46%,#fff 0%,#edf4fb 100%)}
+.canvas-area{min-width:0;min-height:0;position:relative;overflow:hidden}
 #gears{display:block;width:100%;height:100%}
-.stage-hint{position:absolute;top:9px;left:13px;font-size:11px;color:#687c95;font-weight:600;pointer-events:none}
-.speed-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid var(--line);height:49px}
-.speed-box{min-width:0;padding:6px 6px 4px;text-align:center;border-right:1px solid #e6ecf2}
+.stage-hint{position:absolute;top:12px;left:18px;font-size:12px;color:#607692;font-weight:600;pointer-events:none}
+.speed-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid var(--line);height:57px}
+.speed-box{min-width:0;padding:8px 6px 5px;text-align:center;border-right:1px solid #e6ecf2}
 .speed-box:last-child{border:0}
-.speed-box .name{font-size:10.5px;color:#6d7d91;font-weight:700;white-space:nowrap}
-.speed-box .speed{margin-top:2px;font-size:15px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.speed-box .name{font-size:11px;color:#6d7d91;font-weight:700;white-space:nowrap}
+.speed-box .speed{margin-top:4px;font-size:17px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
 .speed-box.in .speed{color:#345eaa}.speed-box.out .speed{color:#a63f59}.speed-box.idle .speed{color:#7a8795}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
-.formula{background:#f8fafc;border-bottom:1px solid var(--line);padding:7px 14px;display:flex;align-items:center;gap:24px;justify-content:space-between;min-width:0}
-.formula-left{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.formula-label{font-weight:800;text-transform:uppercase;letter-spacing:.035em;color:#768499;font-size:10px;width:100px;flex:0 0 100px;line-height:1.25}
-.equation{font-weight:800;font-size:20px;color:#314157;white-space:nowrap}
-.equation .fraction{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;font-size:15px;line-height:1.1;min-width:20px}
-.equation .fraction i{font-style:normal;padding:1px 4px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.controls{min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px;padding:15px 16px 13px;background:#fff}
+.controls-head{display:flex;flex-direction:column;gap:4px}
+h2{margin:0;font-size:17px;font-weight:800;color:#2a4365}
+.controls-head span{font-size:11.5px;color:#748399}
+.inputs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(3,78px);gap:9px 15px;min-height:0}
+.control{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:29px 20px;align-content:start;align-items:center;gap:7px 4px;min-width:0;padding:8px 9px 7px;background:#f8fafc;border:1px solid #e3e9f1;border-radius:9px}
+.control label{font-size:11.3px;font-weight:750;min-width:0;line-height:1.2}
+.value{font-size:12px;font-weight:800;padding:4px 6px;min-width:38px;text-align:right;border-radius:6px;background:#eaf0fb;color:#265bac;font-variant-numeric:tabular-nums;white-space:nowrap}
+.value.grey{background:#f0f2f5;color:#66798a}.value.red{background:#f8ebed;color:#a33e57}.value.green{background:#e9f7f1;color:#08764f}
+input[type=range]{grid-column:1/-1;width:100%;margin:0;min-width:0;accent-color:#3265bc;cursor:pointer;height:15px}
+input.grey{accent-color:#8e9dac}input.red{accent-color:#ab586b}
+.output-track{grid-column:1/-1;position:relative;height:8px;border-radius:99px;background:#e6edf1;overflow:hidden;align-self:center}
+.output-fill{position:absolute;left:0;top:0;bottom:0;background:#46a688;border-radius:99px;width:0}
+.buttons{display:grid;grid-template-columns:1fr 1.3fr 1.2fr;gap:8px}
+button{border-radius:8px;padding:11px 7px;border:1px solid #ced9e8;color:#466080;background:#fff;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap}
+button.primary{background:#3467c1;border-color:#3467c1;color:#fff}
+.teaching{margin-top:auto;background:#edf6f2;border:1px solid #d8ece2;border-radius:9px;padding:9px 12px;color:#406b58;font-size:12px;line-height:1.4}
+.teaching strong{color:#147958}
+.formula{min-width:0;display:grid;grid-template-columns:340px 1fr;align-items:center;gap:20px;padding:9px 20px;background:#f6f9fd;border-top:1px solid var(--line)}
+.formula-left{display:flex;align-items:center;gap:20px;min-width:0}
+.formula-label{font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#768499;font-size:11px;width:108px;flex:0 0 108px;line-height:1.3}
+.equation{font-weight:800;font-size:24px;color:#314157;white-space:nowrap}
+.equation .fraction{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;font-size:18px;line-height:1.06;min-width:20px}
+.equation .fraction i{font-style:normal;padding:0 4px}
 .equation .fraction i:first-child{border-bottom:2px solid #40546b}
 .equation .result{color:#bc2463}
 .blue{color:#3167b9}.red{color:#b44059}
-.formula-detail{text-align:right;line-height:1.35;font-size:11.5px;color:#506784;min-width:0}
+.formula-detail{font-size:13px;color:#506784;min-width:0;line-height:1.6;white-space:normal;padding-left:20px;border-left:1px solid #dce5ee}
 .formula-detail strong{color:#117a59}
-.controls{padding:7px 13px 8px;background:#fff;min-height:0;display:flex;flex-direction:column;gap:5px}
-.controls-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-h2{margin:0;font-size:12px;font-weight:800}
-.controls-head span{font-size:10.5px;color:#718095;text-align:right}
-.inputs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,42px);gap:2px 19px;min-height:0}
-.control{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:19px 17px;align-items:center;min-width:0}
-.control label{font-size:11px;font-weight:750;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.value{font-size:12px;font-weight:800;padding:2px 6px;min-width:54px;text-align:right;border-radius:6px;background:#eaf0fb;color:#265bac;font-variant-numeric:tabular-nums}
-.value.grey{background:#f0f2f5;color:#66798a}.value.red{background:#f8ebed;color:#a33e57}.value.green{background:#e9f7f1;color:#08764f}
-input[type=range]{grid-column:1 / -1;width:100%;margin:0;min-width:0;accent-color:#3265bc;cursor:pointer;height:13px}
-input.grey{accent-color:#8e9dac}input.red{accent-color:#ab586b}
-.output-track{grid-column:1/-1;position:relative;height:6px;border-radius:99px;background:#e6edf1;overflow:hidden}
-.output-fill{position:absolute;left:0;top:0;bottom:0;background:#46a688;border-radius:99px;width:0}
-.buttons{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;margin-top:0}
-button{border-radius:7px;padding:5px 12px;border:1px solid #ced9e8;color:#466080;background:#fff;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap}
-button.primary{background:#3467c1;border-color:#3467c1;color:#fff;min-width:93px}
-.teaching{margin-left:auto;color:#60748b;font-size:10.5px;text-align:right}
-@media(max-width:550px){.app{height:600px}.tag{display:none}.formula{gap:6px;padding:5px 9px}.formula-label{display:none}.equation{font-size:17px}.formula-detail{font-size:10px}.controls{padding-left:8px;padding-right:8px}.inputs{column-gap:9px}.control label{font-size:10px}.teaching{display:none}.stage-hint{font-size:10px}.speed-box .speed{font-size:12px}.speed-box .name{font-size:9px}}
-</style>
-</head>
-<body>
-<main class="app" aria-label="Simulateur de pignons fous en deux dimensions">
+@media (max-width:800px){
+  .app{height:auto;grid-template-rows:56px auto auto}
+  .workspace{grid-template-columns:1fr}
+  .stage{height:390px;grid-template-rows:minmax(0,1fr) 55px;border-right:0;border-bottom:1px solid var(--line)}
+  .controls{gap:12px}
+  .inputs{grid-template-rows:repeat(3,78px)}
+  .teaching{margin-top:0}
+  .formula{grid-template-columns:1fr;gap:8px;padding:13px 16px}
+  .formula-detail{border-left:0;padding-left:0}
+}
+@media (max-width:450px){
+  header{padding:7px 10px} h1{font-size:17px} header small{font-size:10px}.tag{display:none}
+  .stage{height:325px}.stage-hint{font-size:10px;left:10px;right:8px}
+  .speed-box .speed{font-size:12px}.speed-box .name{font-size:10px}
+  .controls{padding:12px 8px}.inputs{column-gap:7px}.control{padding:7px 5px}.control label{font-size:10px}
+  .buttons{gap:5px} button{padding:9px 3px;font-size:10px}
+  .formula-label{width:85px;flex-basis:85px}.equation{font-size:19px}
+}
+</style></head>
+<body><main class="app" aria-label="Simulateur de pignons fous en deux dimensions">
   <header>
     <div><h1>Les pignons fous</h1><small>Transmission du mouvement par quatre engrenages extérieurs</small></div>
     <span class="tag">DÉVELOPPANTE · α = 20°</span>
   </header>
-  <section class="stage" aria-label="Visualisation des quatre pignons">
-    <div class="canvas-area">
-      <canvas id="gears" aria-label="Quatre pignons engrenés, disposés en zigzag"></canvas>
-      <div class="stage-hint">Les pignons gris transmettent le mouvement sans modifier le rapport final.</div>
-    </div>
-    <div class="speed-strip" aria-live="off">
-      <div class="speed-box in"><div class="name"><span class="dot" style="background:#507db4"></span>1 · Entrée</div><div class="speed" id="speed1">60 tr/min</div></div>
-      <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>2 · Fou</div><div class="speed" id="speed2">45 tr/min</div></div>
-      <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>3 · Fou</div><div class="speed" id="speed3">77,1 tr/min</div></div>
-      <div class="speed-box out"><div class="name"><span class="dot" style="background:#af6670"></span>4 · Sortie</div><div class="speed" id="speed4">30 tr/min</div></div>
-    </div>
-  </section>
+
+  <div class="workspace">
+    <section class="stage" aria-label="Visualisation des quatre pignons">
+      <div class="canvas-area">
+        <canvas id="gears" aria-label="Quatre pignons engrenés, disposés en zigzag"></canvas>
+        <div class="stage-hint">Les pignons gris transmettent le mouvement sans modifier le rapport final.</div>
+      </div>
+      <div class="speed-strip" aria-live="off">
+        <div class="speed-box in"><div class="name"><span class="dot" style="background:#507db4"></span>1 · Entrée</div><div class="speed" id="speed1">60 tr/min</div></div>
+        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>2 · Fou</div><div class="speed" id="speed2">45 tr/min</div></div>
+        <div class="speed-box idle"><div class="name"><span class="dot" style="background:#acb9c7"></span>3 · Fou</div><div class="speed" id="speed3">77,1 tr/min</div></div>
+        <div class="speed-box out"><div class="name"><span class="dot" style="background:#af6670"></span>4 · Sortie</div><div class="speed" id="speed4">30 tr/min</div></div>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Réglages de la simulation">
+      <div class="controls-head"><h2>Réglages</h2><span>Modifie le nombre de dents ou la vitesse d'entrée.</span></div>
+      <div class="inputs">
+        <div class="control"><label for="z1">Pignon 1 · Entrée (bleu)</label><output class="value" id="v1">18</output><input id="z1" type="range" min="10" max="40" step="1" value="18" aria-label="Nombre de dents du pignon d'entrée"></div>
+        <div class="control"><label for="z4">Pignon 4 · Sortie (rouge)</label><output class="value red" id="v4">36</output><input class="red" id="z4" type="range" min="10" max="40" step="1" value="36" aria-label="Nombre de dents du pignon de sortie"></div>
+        <div class="control"><label for="z2">Pignon 2 · Fou (gris)</label><output class="value grey" id="v2">24</output><input class="grey" id="z2" type="range" min="10" max="40" step="1" value="24" aria-label="Nombre de dents du premier pignon fou"></div>
+        <div class="control"><label for="z3">Pignon 3 · Fou (gris)</label><output class="value grey" id="v3">14</output><input class="grey" id="z3" type="range" min="10" max="40" step="1" value="14" aria-label="Nombre de dents du second pignon fou"></div>
+        <div class="control"><label for="rpm">Vitesse d'entrée n₁</label><output class="value" id="rpmVal">60 tr/min</output><input id="rpm" type="range" min="5" max="180" step="1" value="60" aria-label="Vitesse d'entrée en tours par minute"></div>
+        <div class="control"><label>Vitesse de sortie n₄</label><output class="value green" id="outVal">30 tr/min</output><div class="output-track" aria-hidden="true"><div class="output-fill" id="outBar"></div></div></div>
+      </div>
+      <div class="buttons">
+        <button class="primary" id="play" type="button">⏸ Pause</button>
+        <button id="reverse" type="button">↶ Inverser le sens</button>
+        <button id="reset" type="button">↻ Réinitialiser</button>
+      </div>
+      <div class="teaching"><strong>À retenir :</strong> les pignons fous changent éventuellement la vitesse des roues intermédiaires, mais pas le rapport de transmission entre l’entrée et la sortie.</div>
+    </section>
+  </div>
+
   <section class="formula" aria-label="Rapport de transmission">
     <div class="formula-left">
       <div class="formula-label">Rapport de transmission</div>
-      <div class="equation">
-        <span class="fraction"><i class="red">n₄</i><i class="blue">n₁</i></span>
-        = − <span class="fraction"><i class="blue">Z₁</i><i class="red">Z₄</i></span>
-        = <span class="result" id="ratio">−0,500</span>
-      </div>
+      <div class="equation"><span class="fraction"><i class="red">n₄</i><i class="blue">n₁</i></span> = − <span class="fraction"><i class="blue">Z₁</i><i class="red">Z₄</i></span> = <span class="result" id="ratio">−0,500</span></div>
     </div>
-    <div class="formula-detail">
-      <strong>Les dents intermédiaires se simplifient :</strong><br>
-      n₄/n₁ = − (Z₁/Z₂) × (Z₂/Z₃) × (Z₃/Z₄)
-    </div>
-  </section>
-  <section class="controls">
-    <div class="controls-head"><h2>Réglages</h2><span>Les roues restent engrenées quand on modifie le nombre de dents.</span></div>
-    <div class="inputs">
-      <div class="control"><label for="z1">Pignon 1 · Entrée (bleu) — Z₁</label><output class="value" id="v1">18</output><input id="z1" type="range" min="10" max="40" step="1" value="18" aria-label="Nombre de dents du pignon d'entrée"></div>
-      <div class="control"><label for="z4">Pignon 4 · Sortie (rouge) — Z₄</label><output class="value red" id="v4">36</output><input class="red" id="z4" type="range" min="10" max="40" step="1" value="36" aria-label="Nombre de dents du pignon de sortie"></div>
-      <div class="control"><label for="z2">Pignon 2 · Fou (gris) — Z₂</label><output class="value grey" id="v2">24</output><input class="grey" id="z2" type="range" min="10" max="40" step="1" value="24" aria-label="Nombre de dents du premier pignon fou"></div>
-      <div class="control"><label for="z3">Pignon 3 · Fou (gris) — Z₃</label><output class="value grey" id="v3">14</output><input class="grey" id="z3" type="range" min="10" max="40" step="1" value="14" aria-label="Nombre de dents du second pignon fou"></div>
-      <div class="control"><label for="rpm">Vitesse d'entrée n₁ (réglable)</label><output class="value" id="rpmVal">60 tr/min</output><input id="rpm" type="range" min="5" max="180" step="1" value="60" aria-label="Vitesse d'entrée en tours par minute"></div>
-      <div class="control"><label>Vitesse de sortie n₄ (calculée)</label><output class="value green" id="outVal">30 tr/min</output><div class="output-track" aria-hidden="true"><div class="output-fill" id="outBar"></div></div></div>
-    </div>
-    <div class="buttons">
-      <button class="primary" id="play" type="button">⏸ Pause</button>
-      <button id="reverse" type="button">↶ Inverser le sens</button>
-      <button id="reset" type="button">↻ Réinitialiser</button>
-      <div class="teaching">3 contacts extérieurs : rotation de sortie en sens inverse.</div>
-    </div>
+    <div class="formula-detail"><strong>Les nombres de dents intermédiaires se simplifient :</strong><br>n₄/n₁ = − (Z₁/Z₂) × (Z₂/Z₃) × (Z₃/Z₄) &nbsp; → &nbsp; − Z₁/Z₄</div>
   </section>
 </main>
 <script>
@@ -280,6 +291,4 @@ button.primary{background:#3467c1;border-color:#3467c1;color:#fff;min-width:93px
  });
  update();requestAnimationFrame(render);
 })();
-</script>
-</body>
-</html>
+</script></body></html>
